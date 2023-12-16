@@ -38,25 +38,25 @@ def get_text_chunks(text):
     chunks = text_splitter.split_text(text)
     return chunks
 
-# def get_vector_store(text_chunks):
-#     # create vector store
-#     embeddings = HuggingFaceInstructEmbeddings(model_name="hkunlp/instructor-xl") if FREE_RUN else OpenAIEmbeddings()
-#     vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
-#     return vectorstore
 def get_vector_store(text_chunks):
     # create vector store
-    embeddings = HuggingFaceInstructEmbeddings(
-        model_name="hkunlp/instructor-xl") if FREE_RUN else OpenAIEmbeddings()
-
-    # Use Pinecone as the vector store
-    pinecone.init(api_key=PINECONE_API_KEY, environment='gcp-starter')
-    index_name = "initial-index"  # replace with your desired index name
-    index = pinecone.Index(index_name)
-    
-    vectorstore = Pinecone(
-    index, embeddings.embed_query, text_chunks
-)
+    embeddings = HuggingFaceInstructEmbeddings(model_name="hkunlp/instructor-xl") if FREE_RUN else OpenAIEmbeddings()
+    vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
     return vectorstore
+# def get_vector_store(text_chunks):
+#     # create vector store
+#     embeddings = HuggingFaceInstructEmbeddings(
+#         model_name="hkunlp/instructor-xl") if FREE_RUN else OpenAIEmbeddings()
+
+#     # Use Pinecone as the vector store
+#     pinecone.init(api_key=PINECONE_API_KEY, environment='gcp-starter')
+#     index_name = "initial-index"  # replace with your desired index name
+#     index = pinecone.Index(index_name)
+    
+#     vectorstore = Pinecone(
+#     index, embeddings.embed_query, text_chunks
+# )
+#     return vectorstore
 
 
 def get_conversation_chain(vectorstore):
