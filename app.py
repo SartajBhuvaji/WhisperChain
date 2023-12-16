@@ -12,9 +12,11 @@ from langchain.chains import ConversationalRetrievalChain
 from html_template import css, bot_template, user_template
 from langchain.llms import HuggingFaceHub
 from langchain.vectorstores import Pinecone
+import os
 
-FREE_RUN = load_dotenv("FREE_RUN")
-PINECONE_API_KEY = load_dotenv("PINECONE_API_KEY")
+
+FREE_RUN = os.getenv("FREE_RUN")
+PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 
 
 def get_pdf_text(pdf_docs):
