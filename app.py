@@ -1,7 +1,4 @@
 import streamlit as st
-import pinecone
-from dotenv import load_dotenv
-load_dotenv()
 from PyPDF2 import PdfReader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings import OpenAIEmbeddings, HuggingFaceInstructEmbeddings
@@ -11,13 +8,9 @@ from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 from html_template import css, bot_template, user_template
 from langchain.llms import HuggingFaceHub
-from langchain.vectorstores import Pinecone
 import os
 
-
-FREE_RUN = os.getenv("FREE_RUN")
-PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
-
+FREE_RUN = False
 
 def get_pdf_text(pdf_docs):
     text = ""
@@ -28,39 +21,21 @@ def get_pdf_text(pdf_docs):
     return text
 
 def get_text_chunks(text):
-    # split text into chunks 
     text_splitter = CharacterTextSplitter(
         separator="\n",
         chunk_size=1000,
-        chunk_overlap=200, # to avoid cutting off words
+        chunk_overlap=200,
         length_function=len
     )
     chunks = text_splitter.split_text(text)
     return chunks
 
 def get_vector_store(text_chunks):
-    # create vector store
     embeddings = HuggingFaceInstructEmbeddings(model_name="hkunlp/instructor-xl") if FREE_RUN else OpenAIEmbeddings()
     vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
     return vectorstore
-# def get_vector_store(text_chunks):
-#     # create vector store
-#     embeddings = HuggingFaceInstructEmbeddings(
-#         model_name="hkunlp/instructor-xl") if FREE_RUN else OpenAIEmbeddings()
-
-#     # Use Pinecone as the vector store
-#     pinecone.init(api_key=PINECONE_API_KEY, environment='gcp-starter')
-#     index_name = "initial-index"  # replace with your desired index name
-#     index = pinecone.Index(index_name)
-    
-#     vectorstore = Pinecone(
-#     index, embeddings.embed_query, text_chunks
-# )
-#     return vectorstore
-
 
 def get_conversation_chain(vectorstore):
-    # create conversation chain
     llm = HuggingFaceHub(repo_id="google/flan-t5-xxl", model_kwargs={
                         "temperature": 0.5, "max_length": 512}) if FREE_RUN else ChatOpenAI()
     memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
@@ -70,7 +45,6 @@ def get_conversation_chain(vectorstore):
         memory=memory
     )
     return conversation_chain
-
 
 def handle_userinput(user_question):
     response = st.session_state.conversation({'question': user_question})
@@ -84,7 +58,6 @@ def handle_userinput(user_question):
             st.write(bot_template.replace(
                 "{{MSG}}", message.content), unsafe_allow_html=True)
 
-
 def main():
     st.set_page_config(page_title="WhisperChain 🔗", page_icon=":link:")
     st.write(css, unsafe_allow_html=True)
@@ -95,6 +68,22 @@ def main():
         st.session_state.chat_history = None
 
     st.header("WhisperChain")
+
+    # Input fields for API keys in the sidebar
+    OPENAI_API_KEY = st.sidebar.text_input("Enter OpenAI API Key", type="password")
+    HUGGINGFACEHUB_API_KEY = st.sidebar.text_input("Enter Hugging Face API Key", type="password")
+
+    if not OPENAI_API_KEY or not HUGGINGFACEHUB_API_KEY:
+        st.sidebar.error("Please enter your API keys")
+        st.stop()
+
+    os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
+    os.environ["HUGGINGFACEHUB_API_KEY"] = HUGGINGFACEHUB_API_KEY
+
+    #Toggle free run
+    global FREE_RUN
+    FREE_RUN = st.sidebar.checkbox("Free run", value=False)
+
     user_question = st.text_input("Ask a question about your documents.")
 
     if user_question:
@@ -122,7 +111,6 @@ def main():
                     st.session_state.conversation = get_conversation_chain(vector_store)
             else:
                 st.error("Please upload at least one PDF")
-
 
 if __name__ == '__main__':
     main()
