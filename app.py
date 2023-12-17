@@ -67,30 +67,30 @@ def main():
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = None
 
-    st.header("WhisperChain")
-
-    # Input fields for API keys in the sidebar
-    OPENAI_API_KEY = st.sidebar.text_input("Enter OpenAI API Key", type="password")
-    HUGGINGFACEHUB_API_KEY = st.sidebar.text_input("Enter Hugging Face API Key", type="password")
-
-    if not OPENAI_API_KEY or not HUGGINGFACEHUB_API_KEY:
-        st.sidebar.error("Please enter your API keys")
-        st.stop()
-
-    os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
-    os.environ["HUGGINGFACEHUB_API_KEY"] = HUGGINGFACEHUB_API_KEY
-
-    #Toggle free run
-    global FREE_RUN
-    FREE_RUN = st.sidebar.checkbox("Free run", value=False)
-
+    st.header("WhisperChain 🔗")
     user_question = st.text_input("Ask a question about your documents.")
 
     if user_question:
         handle_userinput(user_question)
 
     with st.sidebar:
-        st.subheader("Your documents")
+        
+        ###
+        OPENAI_API_KEY = st.sidebar.text_input("Enter OpenAI API Key", type="password")
+        HUGGINGFACEHUB_API_KEY = st.sidebar.text_input("Enter Hugging Face API Key", type="password")
+
+        if not OPENAI_API_KEY or not HUGGINGFACEHUB_API_KEY:
+            st.sidebar.error("Please enter your API keys")
+            st.stop()
+
+        os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
+        os.environ["HUGGINGFACEHUB_API_KEY"] = HUGGINGFACEHUB_API_KEY
+
+        #Toggle free run
+        global FREE_RUN
+        FREE_RUN = st.sidebar.checkbox("Free run", value=False)
+        ###
+
         pdf_docs = st.file_uploader(
             "Upload your PDFs here and click on 'Process'", accept_multiple_files=True)
 
